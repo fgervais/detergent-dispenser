@@ -123,6 +123,14 @@ class Bartendro:
         # self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=512)
         self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=0)
 
+        print("Sending discovery token")
+        uart.write("!!!")
+        print(uart.read())
+
+
+    def dispense(self):
+        pass
+
 
 buzzer = PWM(Pin(BUZZER_PIN), freq=4000, duty=512)
 time.sleep(0.05)
@@ -131,6 +139,8 @@ buzzer.duty(0)
 uart = UART(1, baudrate=9600, tx=UART_TX_PIN, rx=UART_RX_PIN)
 
 dispenser = Bartendro(uart, RESET_PIN, SYNC_PIN)
+
+button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
 
 
 while True:
@@ -153,51 +163,51 @@ while True:
 # blynk = blynklib.Blynk(secret.BLYNK_AUTH, log=print)
 # dishwasher = Device(blynk, buzzer, connect, leak_detect_pad)
 
-if not dishwasher.is_leak():
-    print("There is no leak")
-    dishwasher.leak_led = False
-    dishwasher.beacon()
-    # The touchpad reading gets lower when wifi is activated so it's possible
-    # that we get here (there is no leak) but still that the capacitance
-    # shown below is below LEAK_CAP_THRESHOLD since here we sent a beacon
-    # hence we are connected to wifi.
-    # It doesn't affect a real leak since a leak bottoms out the capacitance
-    # to 0.
-    dishwasher.show_leak_cap_value()
-    esp32.wake_on_touch(True)
-    sleep_time = 7 * 24 * 60 * 60 * 1000 # 1 week
+# if not dishwasher.is_leak():
+#     print("There is no leak")
+#     dishwasher.leak_led = False
+#     dishwasher.beacon()
+#     # The touchpad reading gets lower when wifi is activated so it's possible
+#     # that we get here (there is no leak) but still that the capacitance
+#     # shown below is below LEAK_CAP_THRESHOLD since here we sent a beacon
+#     # hence we are connected to wifi.
+#     # It doesn't affect a real leak since a leak bottoms out the capacitance
+#     # to 0.
+#     dishwasher.show_leak_cap_value()
+#     esp32.wake_on_touch(True)
+#     sleep_time = 7 * 24 * 60 * 60 * 1000 # 1 week
 
-    print("Let say we are not charging")
-    dishwasher.charging = False
+#     print("Let say we are not charging")
+#     dishwasher.charging = False
 
-else:
-    print("A leak has been detected!")
-    if not error_reported:
-        dishwasher.leak_detected()
-        dishwasher.show_leak_cap_value()
-        rtc.memory(b'\x01')
+# else:
+#     print("A leak has been detected!")
+#     if not error_reported:
+#         dishwasher.leak_detected()
+#         dishwasher.show_leak_cap_value()
+#         rtc.memory(b'\x01')
 
-    # If the error was already reported, we should not be connected to wifi here.
-    # This is so we can go to sleep and wakeup and beep again without wasting
-    # energy on wifi for each loop.
+#     # If the error was already reported, we should not be connected to wifi here.
+#     # This is so we can go to sleep and wakeup and beep again without wasting
+#     # energy on wifi for each loop.
 
-    dishwasher.alarm(60)
+#     dishwasher.alarm(60)
 
-    esp32.wake_on_touch(False)
-    sleep_time = 0 # forever
+#     esp32.wake_on_touch(False)
+#     sleep_time = 0 # forever
 
 
-dishwasher.teardown()
+# dishwasher.teardown()
 
-if wlan.isconnected():
-    wlan.disconnect()
-    while wlan.isconnected():
-        time.sleep(1)
+# if wlan.isconnected():
+#     wlan.disconnect()
+#     while wlan.isconnected():
+#         time.sleep(1)
 
-print("Going to sleep")
-TinyPICO.go_deepsleep(sleep_time)
+# print("Going to sleep")
+# TinyPICO.go_deepsleep(sleep_time)
 
-print("not reached")
+# print("not reached")
 
-while True:
-    pass
+# while True:
+#     pass
