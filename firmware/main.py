@@ -124,9 +124,11 @@ class Bartendro:
         self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=0)
 
         print("Sending discovery token")
-        uart.write("!!!")
-        print(uart.read())
+        while uart.read() != b'\r\nParty Robotics Dispenser at your service!\r\n\r\n>!!!':
+            uart.write("!!!")
+            time.sleep(1)
 
+        print("Bartendro ready!")
 
     def dispense(self):
         pass
