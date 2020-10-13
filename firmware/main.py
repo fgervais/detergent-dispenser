@@ -111,6 +111,41 @@ SYNC_PIN = 18
 #         print("Leak capacitance: " + str(value))
 #         self.blynk_virtual_write(LEAK_VAL_VPIN, value)
 
+class Button:
+    """
+    Debounced pin handler
+
+    usage e.g.:
+
+    def button_callback(pin):
+        print("Button (%s) changed to: %r" % (pin, pin.value()))
+
+    button_handler = Button(pin=Pin(32, mode=Pin.IN, pull=Pin.PULL_UP), callback=button_callback)
+
+
+    jedie/button_test.py
+    """
+
+    def __init__(self, pin, callback, trigger=Pin.IRQ_FALLING, min_ago=300):
+        self.callback = callback
+        self.min_ago = min_ago
+
+        self._blocked = False
+        self._next_call = time.ticks_ms() + self.min_ago
+
+        pin.irq(trigger=trigger, handler=self.debounce_handler)
+
+    def call_callback(self, pin):
+        self.callback(pin)
+
+    def debounce_handler(self, pin):
+        if time.ticks_ms() > self._next_call:
+            self._next_call = time.ticks_ms() + self.min_ago
+            self.call_callback(pin)
+        #else:
+        #    print("debounce: %s" % (self._next_call - time.ticks_ms()))
+
+
 class Bartendro:
     def __init__(self, uart, reset_pin, sync_pin):
         self.uart = uart
@@ -134,6 +169,10 @@ class Bartendro:
         pass
 
 
+def button_pressed(pin):
+    print("Button " + str(pin) + " pressed")
+
+
 buzzer = PWM(Pin(BUZZER_PIN), freq=4000, duty=512)
 time.sleep(0.05)
 buzzer.duty(0)
@@ -142,8 +181,9 @@ uart = UART(1, baudrate=9600, tx=UART_TX_PIN, rx=UART_RX_PIN)
 
 dispenser = Bartendro(uart, RESET_PIN, SYNC_PIN)
 
-button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
-
+button = Button(Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
+                callback=button_pressed,
+                trigger=Pin.IRQ_FALLING)
 
 while True:
     pass
