@@ -158,19 +158,29 @@ class Bartendro:
         # self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=512)
         self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=0)
 
-        print("Sending discovery token")
-        while uart.read() != b'\r\nParty Robotics Dispenser at your service!\r\n\r\n>!!!':
-            uart.write("!!!")
-            time.sleep(1)
+        print("Waiting for dispenser")
+        while uart.read() != b'\r\nParty Robotics Dispenser at your service!\r\n\r\n>':
+            time.sleep(0.1)
 
         print("Bartendro ready!")
 
     def dispense(self):
-        pass
+        uart.write("help\r")
+
+        d = uart.read()
+        while d is None:
+            time.sleep(0.1)
+            d = uart.read()
+
+        while d is not None:
+            print(d)
+            time.sleep(0.1)
+            d = uart.read()
 
 
 def button_pressed(pin):
     print("Button " + str(pin) + " pressed")
+    dispenser.dispense()
 
 
 buzzer = PWM(Pin(BUZZER_PIN), freq=4000, duty=512)
