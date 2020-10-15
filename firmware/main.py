@@ -155,27 +155,40 @@ class Bartendro:
         time.sleep(0.1)
         self.reset.value(0)
 
+        time.sleep(0.5)
+
         # self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=512)
         self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=0)
 
         print("Waiting for dispenser")
-        while uart.read() != b'\r\nParty Robotics Dispenser at your service!\r\n\r\n>':
-            time.sleep(0.1)
-
+        self.enter_text_mode()
         print("Bartendro ready!")
 
+    def read(self):
+        data = uart.read()
+        for i in range(5):
+            print("Reading (" + str(i) + "):")
+            print(data)
+            if data:
+                break
+            time.sleep(0.1)
+
+        return data
+
+    def enter_text_mode(self):
+        while True:
+            # In case the TinyPICO is reset, the Bartendro will already be
+            # in text mode.
+            prompt = self.read()
+            if prompt == b'\r\nParty Robotics Dispenser at your service!\r\n\r\n>':
+                break
+
+            # Send text mode magic
+            uart.write("!!!")
+            time.sleep(2)
+
     def dispense(self):
-        uart.write("help\r")
-
-        d = uart.read()
-        while d is None:
-            time.sleep(0.1)
-            d = uart.read()
-
-        while d is not None:
-            print(d)
-            time.sleep(0.1)
-            d = uart.read()
+        uart.write("led_dispense\r")
 
 
 def button_pressed(pin):
