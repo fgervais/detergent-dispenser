@@ -157,8 +157,7 @@ class Bartendro:
 
         time.sleep(0.5)
 
-        # self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=512)
-        self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=0)
+        self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=512)
 
         print("Waiting for dispenser")
         self.enter_text_mode()
@@ -187,8 +186,10 @@ class Bartendro:
             uart.write("!!!")
             time.sleep(2)
 
+        uart.write("led_idle\r")
+
     def dispense(self):
-        uart.write("led_dispense\r")
+        uart.write("led_done\r")
 
 
 def button_pressed(pin):
