@@ -150,6 +150,8 @@ class Bartendro:
     def __init__(self, uart, reset_pin, sync_pin):
         self.uart = uart
 
+        self.dispense_required = False
+
         self.reset = Pin(reset_pin, Pin.OUT, value=1)
         # Ensure that the Bartendro has time to reset (high min. 1ms)
         time.sleep(0.1)
@@ -189,7 +191,22 @@ class Bartendro:
         uart.write("led_idle\r")
 
     def dispense(self):
-        uart.write("led_done\r")
+        self.dispense_required = True
+
+    def run(self):
+        if self.dispense_required:
+            # uart.write("led_done\r")
+            # uart.write("led_dispense\r")
+            uart.write("tickdisp 50 255\r")
+            time.sleep(0.5)
+            uart.write("speed 184 0\r")
+            # uart.write("led_clean\r")
+
+            self.dispense_required = False
+
+            # In packet mode we could poll PACKET_IS_DISPENSING but for now
+            # all we can do is sleep or send a PR
+            time.sleep(1)
 
 
 def button_pressed(pin):
@@ -210,7 +227,7 @@ button = Button(Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
                 trigger=Pin.IRQ_FALLING)
 
 while True:
-    pass
+    dispenser.run()
 
 
 
