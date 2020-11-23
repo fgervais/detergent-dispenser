@@ -4,7 +4,8 @@ import tinypico as TinyPICO
 import micropython
 import esp32
 import machine
-# import secret
+import blynklib_mp as blynklib
+import secret
 
 from machine import Pin, PWM, ADC, TouchPad, RTC, UART
 
@@ -16,16 +17,18 @@ UART_TX_PIN = 33
 RESET_PIN = 5
 SYNC_PIN = 18
 
+BUTTON_VPIN = 0
 
-# wlan = network.WLAN(network.STA_IF)
-# def connect():
-#     wlan.active(True)
-#     if not wlan.isconnected():
-#         print('connecting to network...')
-#         wlan.connect(secret.ESSID, secret.PSK)
-#         while not wlan.isconnected():
-#             time.sleep(1)
-#     print('network config:', wlan.ifconfig())
+
+wlan = network.WLAN(network.STA_IF)
+def connect():
+    wlan.active(True)
+    if not wlan.isconnected():
+        print('connecting to network...')
+        wlan.connect(secret.ESSID, secret.PSK)
+        while not wlan.isconnected():
+            time.sleep(1)
+    print('network config:', wlan.ifconfig())
 
 
 # class Device:
@@ -226,7 +229,17 @@ button = Button(Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
                 callback=button_pressed,
                 trigger=Pin.IRQ_FALLING)
 
+connect()
+blynk = blynklib.Blynk(secret.BLYNK_AUTH, log=print)
+
+@blynk.handle_event("write V" + str(BUTTON_VPIN))
+def write_handler(pin, value):
+    if int(value[0]) == 1:
+        dispenser.dispense()
+
+
 while True:
+    blynk.run()
     dispenser.run()
 
 
