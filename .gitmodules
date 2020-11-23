@@ -1,0 +1,3 @@
+[submodule "firmware/lib-python"]
+	path = firmware/lib-python
+	url = https://github.com/blynkkk/lib-python.git
