@@ -17,7 +17,10 @@ UART_TX_PIN = 33
 RESET_PIN = 5
 SYNC_PIN = 18
 
-BUTTON_VPIN = 0
+DISPENSE_BUTTON_VPIN = 0
+COUNTER_VPIN = 1
+RESET_COUNT_VPIN = 2
+LOCK_CONTROLS_VPIN = 3
 
 
 wlan = network.WLAN(network.STA_IF)
@@ -232,11 +235,25 @@ button = Button(Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
 connect()
 blynk = blynklib.Blynk(secret.BLYNK_AUTH, log=print)
 
-@blynk.handle_event("write V" + str(BUTTON_VPIN))
+controls_locked = None
+
+@blynk.handle_event("write V" + str(LOCK_CONTROLS_VPIN))
 def write_handler(pin, value):
-    if int(value[0]) == 1:
+    global controls_locked
+
+    controls_locked = True if int(value[0]) == 1 else False
+
+    print("Controls [{}]".format(
+        "LOCKED" if controls_locked else "UNLOCKED"))
+
+@blynk.handle_event("write V" + str(DISPENSE_BUTTON_VPIN))
+def write_handler(pin, value):
+    if int(value[0]) == 1 and not controls_locked:
         dispenser.dispense()
 
+
+blynk.run()
+blynk.virtual_sync(LOCK_CONTROLS_VPIN)
 
 while True:
     blynk.run()
