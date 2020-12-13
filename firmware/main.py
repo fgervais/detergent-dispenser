@@ -18,7 +18,7 @@ RESET_PIN = 5
 SYNC_PIN = 18
 
 DISPENSE_BUTTON_VPIN = 0
-COUNTER_VPIN = 1
+COUNTER_VPIN = 4
 RESET_COUNT_VPIN = 2
 LOCK_CONTROLS_VPIN = 3
 
@@ -157,6 +157,7 @@ connect()
 blynk = blynklib.Blynk(secret.BLYNK_AUTH, port=443, log=print)
 
 controls_locked = None
+dispense_count = None
 
 
 @blynk.handle_event("write V" + str(LOCK_CONTROLS_VPIN))
@@ -168,14 +169,25 @@ def write_handler(pin, value):
     print("Controls [{}]".format("LOCKED" if controls_locked else "UNLOCKED"))
 
 
+@blynk.handle_event("write V" + str(COUNTER_VPIN))
+def write_handler(pin, value):
+    global dispense_count
+
+    if dispense_count is None:
+        dispense_count = int(value[0])
+    else:
+        blynk.virtual_write(COUNTER_VPIN, dispense_count)
+
+
 @blynk.handle_event("write V" + str(DISPENSE_BUTTON_VPIN))
 def write_handler(pin, value):
     if int(value[0]) == 1 and not controls_locked:
         dispenser.dispense()
 
 
-blynk.run()
-blynk.virtual_sync(LOCK_CONTROLS_VPIN)
+for vpin in [COUNTER_VPIN, LOCK_CONTROLS_VPIN]:
+    blynk.run()
+    blynk.virtual_sync(vpin)
 
 while True:
     blynk.run()
