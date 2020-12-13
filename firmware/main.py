@@ -150,7 +150,8 @@ button = Button(Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
                 trigger=Pin.IRQ_FALLING)
 
 connect()
-blynk = blynklib.Blynk(secret.BLYNK_AUTH, log=print)
+blynk = blynklib.Blynk(secret.BLYNK_AUTH, port=443, log=print)
+# blynk = blynklib.Blynk(secret.BLYNK_AUTH, server='192.168.2.11', port=8443, rcv_buffer=1024, log=print)
 
 controls_locked = None
 
