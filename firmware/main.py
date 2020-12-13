@@ -120,9 +120,9 @@ class Bartendro:
         if self.dispense_required:
             # uart.write("led_done\r")
             # uart.write("led_dispense\r")
-            uart.write("tickdisp 50 255\r")
-            time.sleep(0.5)
-            uart.write("speed 184 0\r")
+            uart.write("tickdisp 5 255\r")
+            # time.sleep(0.5)
+            # uart.write("speed 184 0\r")
             # uart.write("led_clean\r")
 
             self.dispense_required = False
