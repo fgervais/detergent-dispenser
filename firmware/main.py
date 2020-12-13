@@ -24,14 +24,16 @@ LOCK_CONTROLS_VPIN = 3
 
 
 wlan = network.WLAN(network.STA_IF)
+
+
 def connect():
     wlan.active(True)
     if not wlan.isconnected():
-        print('connecting to network...')
+        print("connecting to network...")
         wlan.connect(secret.ESSID, secret.PSK)
         while not wlan.isconnected():
             time.sleep(1)
-    print('network config:', wlan.ifconfig())
+    print("network config:", wlan.ifconfig())
 
 
 class Button:
@@ -65,7 +67,7 @@ class Button:
         if time.ticks_ms() > self._next_call:
             self._next_call = time.ticks_ms() + self.min_ago
             self.call_callback(pin)
-        #else:
+        # else:
         #    print("debounce: %s" % (self._next_call - time.ticks_ms()))
 
 
@@ -104,7 +106,7 @@ class Bartendro:
             # In case the TinyPICO is reset, the Bartendro will already be
             # in text mode.
             prompt = self.read()
-            if prompt == b'\r\nParty Robotics Dispenser at your service!\r\n\r\n>':
+            if prompt == b"\r\nParty Robotics Dispenser at your service!\r\n\r\n>":
                 break
 
             # Send text mode magic
@@ -145,9 +147,11 @@ uart = UART(1, baudrate=9600, tx=UART_TX_PIN, rx=UART_RX_PIN)
 
 dispenser = Bartendro(uart, RESET_PIN, SYNC_PIN)
 
-button = Button(Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
-                callback=button_pressed,
-                trigger=Pin.IRQ_FALLING)
+button = Button(
+    Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
+    callback=button_pressed,
+    trigger=Pin.IRQ_FALLING,
+)
 
 connect()
 blynk = blynklib.Blynk(secret.BLYNK_AUTH, port=443, log=print)
@@ -155,14 +159,15 @@ blynk = blynklib.Blynk(secret.BLYNK_AUTH, port=443, log=print)
 
 controls_locked = None
 
+
 @blynk.handle_event("write V" + str(LOCK_CONTROLS_VPIN))
 def write_handler(pin, value):
     global controls_locked
 
     controls_locked = True if int(value[0]) == 1 else False
 
-    print("Controls [{}]".format(
-        "LOCKED" if controls_locked else "UNLOCKED"))
+    print("Controls [{}]".format("LOCKED" if controls_locked else "UNLOCKED"))
+
 
 @blynk.handle_event("write V" + str(DISPENSE_BUTTON_VPIN))
 def write_handler(pin, value):

@@ -8,6 +8,10 @@ verify_ssl = true
 [packages]
 adafruit-ampy = "*"
 upydev = "*"
+black = "*"
 
 [requires]
 python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true
