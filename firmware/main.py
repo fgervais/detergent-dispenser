@@ -21,6 +21,7 @@ DISPENSE_BUTTON_VPIN = 0
 COUNTER_VPIN = 4
 RESET_COUNT_VPIN = 2
 LOCK_CONTROLS_VPIN = 3
+DISPENSE_GRAPH_VPIN = 5
 
 
 wlan = network.WLAN(network.STA_IF)
@@ -146,6 +147,18 @@ def lock_controls():
     controls_locked = True
 
 
+def set_counter(count):
+    global dispense_count
+
+    dispense_count = count
+    blynk.virtual_write(COUNTER_VPIN, dispense_count)
+    blynk.virtual_write(DISPENSE_GRAPH_VPIN, dispense_count)
+
+
+def inc_counter():
+    set_counter(dispense_count + 1)
+
+
 buzzer = PWM(Pin(BUZZER_PIN), freq=4000, duty=512)
 time.sleep(0.05)
 buzzer.duty(0)
@@ -190,6 +203,14 @@ def write_handler(pin, value):
 def write_handler(pin, value):
     if int(value[0]) == 1 and not controls_locked:
         dispenser.dispense()
+        inc_counter()
+        lock_controls()
+
+
+@blynk.handle_event("write V" + str(RESET_COUNT_VPIN))
+def write_handler(pin, value):
+    if int(value[0]) == 1 and not controls_locked:
+        set_counter(0)
         lock_controls()
 
 
