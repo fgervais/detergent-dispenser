@@ -139,6 +139,13 @@ def button_pressed(pin):
     dispenser.dispense()
 
 
+def lock_controls():
+    global controls_locked
+
+    blynk.virtual_write(LOCK_CONTROLS_VPIN, 1)
+    controls_locked = True
+
+
 buzzer = PWM(Pin(BUZZER_PIN), freq=4000, duty=512)
 time.sleep(0.05)
 buzzer.duty(0)
@@ -183,6 +190,7 @@ def write_handler(pin, value):
 def write_handler(pin, value):
     if int(value[0]) == 1 and not controls_locked:
         dispenser.dispense()
+        lock_controls()
 
 
 for vpin in [COUNTER_VPIN, LOCK_CONTROLS_VPIN]:
