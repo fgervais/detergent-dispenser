@@ -5,6 +5,7 @@ import micropython
 import esp32
 import machine
 import blynklib_mp as blynklib
+import blynklib_mp_ssl as blynklib_ssl
 import secret
 
 from machine import Pin, PWM, ADC, TouchPad, RTC, UART
@@ -174,7 +175,10 @@ button = Button(
 )
 
 connect()
-blynk = blynklib.Blynk(secret.BLYNK_AUTH, port=443, log=print)
+ssl_connection = blynklib_ssl.SslConnection(secret.BLYNK_AUTH, port=443, log=print)
+blynk = blynklib.Blynk(secret.BLYNK_AUTH, connection=ssl_connection)
+
+# blynk = blynklib.Blynk(secret.BLYNK_AUTH)
 
 controls_locked = None
 dispense_count = None
