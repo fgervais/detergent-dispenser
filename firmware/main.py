@@ -83,7 +83,7 @@ class Bartendro:
 
         time.sleep(0.5)
 
-        self.sync = PWM(Pin(SYNC_PIN), freq=500, duty=512)
+        # self.sync = PWM(Pin(sync_pin), freq=500, duty=512)
 
         print("Waiting for dispenser")
         self.enter_text_mode()
@@ -112,19 +112,14 @@ class Bartendro:
             uart.write("!!!")
             time.sleep(2)
 
-        uart.write("led_idle\r")
+        # uart.write("led_idle\r")
 
     def dispense(self):
         self.dispense_required = True
 
     def run(self):
         if self.dispense_required:
-            # uart.write("led_done\r")
-            # uart.write("led_dispense\r")
             uart.write("tickdisp 5 255\r")
-            # time.sleep(0.5)
-            # uart.write("speed 184 0\r")
-            # uart.write("led_clean\r")
 
             self.dispense_required = False
 
