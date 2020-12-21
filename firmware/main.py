@@ -26,16 +26,13 @@ DISPENSE_GRAPH_VPIN = 5
 
 
 wlan = network.WLAN(network.STA_IF)
-
-
-def connect():
-    wlan.active(True)
-    if not wlan.isconnected():
-        print("connecting to network...")
-        wlan.connect(secret.ESSID, secret.PSK)
-        while not wlan.isconnected():
-            time.sleep(1)
-    print("network config:", wlan.ifconfig())
+wlan.active(True)
+if not wlan.isconnected():
+    print("connecting to network...")
+    wlan.connect(secret.ESSID, secret.PSK)
+    while not wlan.isconnected():
+        time.sleep(1)
+print("network config:", wlan.ifconfig())
 
 
 class Button:
@@ -174,7 +171,6 @@ button = Button(
     trigger=Pin.IRQ_FALLING,
 )
 
-connect()
 ssl_connection = blynklib_ssl.SslConnection(secret.BLYNK_AUTH, port=443, log=print)
 blynk = blynklib.Blynk(secret.BLYNK_AUTH, connection=ssl_connection)
 
