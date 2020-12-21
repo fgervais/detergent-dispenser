@@ -71,8 +71,9 @@ class Button:
 
 
 class Bartendro:
-    def __init__(self, uart, reset_pin, sync_pin):
+    def __init__(self, uart, buzzer, reset_pin, sync_pin):
         self.uart = uart
+        self.buzzer = buzzer
 
         self.dispense_required = False
 
@@ -115,7 +116,12 @@ class Bartendro:
         # uart.write("led_idle\r")
 
     def dispense(self):
-        self.dispense_required = True
+        if not self.dispense_required:
+            self.dispense_required = True
+
+            self.buzzer.duty(512)
+            time.sleep(0.05)
+            self.buzzer.duty(0)
 
     def run(self):
         if self.dispense_required:
@@ -158,7 +164,7 @@ buzzer.duty(0)
 
 uart = UART(1, baudrate=9600, tx=UART_TX_PIN, rx=UART_RX_PIN)
 
-dispenser = Bartendro(uart, RESET_PIN, SYNC_PIN)
+dispenser = Bartendro(uart, buzzer, RESET_PIN, SYNC_PIN)
 
 button = Button(
     Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
