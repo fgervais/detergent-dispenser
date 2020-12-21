@@ -128,6 +128,7 @@ class Bartendro:
             uart.write("tickdisp 5 255\r")
 
             self.dispense_required = False
+            inc_counter()
 
             # In packet mode we could poll PACKET_IS_DISPENSING but for now
             # all we can do is sleep or send a PR
@@ -204,7 +205,6 @@ def write_handler(pin, value):
 def write_handler(pin, value):
     if int(value[0]) == 1 and not controls_locked:
         dispenser.dispense()
-        inc_counter()
         lock_controls()
 
 
