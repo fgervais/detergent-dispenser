@@ -51,6 +51,7 @@ class Button:
     """
 
     def __init__(self, pin, callback, trigger=Pin.IRQ_FALLING, min_ago=300):
+        self.pin = pin
         self.callback = callback
         self.min_ago = min_ago
 
@@ -69,9 +70,13 @@ class Button:
         # else:
         #    print("debounce: %s" % (self._next_call - time.ticks_ms()))
 
+    @property
+    def pressed(self):
+        return not self.pin.value()
+
 
 class Bartendro:
-    def __init__(self, uart, buzzer, reset_pin, sync_pin):
+    def __init__(self, uart, buzzer, button, reset_pin, sync_pin):
         self.uart = uart
         self.buzzer = buzzer
 
@@ -125,14 +130,24 @@ class Bartendro:
 
     def run(self):
         if self.dispense_required:
-            uart.write("tickdisp 5 255\r")
+            time.sleep(1)
+            if button.pressed:
+                uart.write("tickdisp 5 255\r")
+
+                inc_counter()
+
+                # In packet mode we could poll PACKET_IS_DISPENSING but for now
+                # all we can do is sleep or send a PR
+                # time.sleep(1)
+
+            else:
+                for i in range(3):
+                    self.buzzer.duty(512)
+                    time.sleep(0.05)
+                    self.buzzer.duty(0)
+                    time.sleep(0.05)
 
             self.dispense_required = False
-            inc_counter()
-
-            # In packet mode we could poll PACKET_IS_DISPENSING but for now
-            # all we can do is sleep or send a PR
-            time.sleep(1)
 
 
 def button_pressed(pin):
@@ -165,13 +180,14 @@ buzzer.duty(0)
 
 uart = UART(1, baudrate=9600, tx=UART_TX_PIN, rx=UART_RX_PIN)
 
-dispenser = Bartendro(uart, buzzer, RESET_PIN, SYNC_PIN)
-
 button = Button(
     Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
     callback=button_pressed,
     trigger=Pin.IRQ_FALLING,
+    min_ago=1800
 )
+
+dispenser = Bartendro(uart, buzzer, button, RESET_PIN, SYNC_PIN)
 
 ssl_connection = blynklib_ssl.SslConnection(secret.BLYNK_AUTH, port=443, log=print)
 blynk = blynklib.Blynk(secret.BLYNK_AUTH, connection=ssl_connection)
