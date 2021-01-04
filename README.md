@@ -30,6 +30,17 @@ The bottle in this picture is rated for 44 loads but with the proper quantity de
 
 (272 small loads of 7.5ml)
 
+## Control App
+
+The app shows when a dispense occurred and keep a global count since last
+manual reset. It is also possible to start a dispense from the app.
+
+All controls are locked by default and need to get unlocked through the
+lock/unlock button. Once unlocked, only a single action is allowed before
+controls are locked again automatically. This is to prevent unwanted counter reset or dispense.
+
+![Assembled](assets/img/app.png)
+
 ## Next Steps
 
 A couple improvements could be done to this project.
