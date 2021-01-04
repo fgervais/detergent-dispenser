@@ -8,7 +8,7 @@ This project aim to automate the dispensing of a precise amount of detergent.
 
 ## Board
 
-![Motherboard](assets/img/board.jpg)
+![Motherboard](assets/img/board.jpeg)
 
 ## Assembled Unit
 
