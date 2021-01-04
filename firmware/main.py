@@ -132,7 +132,7 @@ class Bartendro:
         if self.dispense_required:
             time.sleep(1)
             if button.pressed:
-                uart.write("tickdisp 5 255\r")
+                uart.write("tickdisp 50 200\r")
 
                 inc_counter()
 
