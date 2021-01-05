@@ -22,7 +22,7 @@ for a small load on our dishwasher using our usual soap.
 
 The pump feeds directly from the bottle.
 
-![Assembled](assets/img/installed.jpeg)
+![Installed](assets/img/installed.jpeg)
 
 ### Resource Efficiency
 
