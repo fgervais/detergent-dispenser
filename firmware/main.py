@@ -105,6 +105,7 @@ class Bartendro:
     def __init__(self, uart, buzzer, button, reset_pin, sync_pin):
         self.uart = uart
         self.buzzer = buzzer
+        self.button = button
 
         self.dispense_required = False
 
