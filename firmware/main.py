@@ -75,6 +75,21 @@ class Button:
         return not self.pin.value()
 
 
+class Buzzer:
+    def __init__(self, pwm_pin):
+        self.pwm_pin = pwm_pin
+
+    def beep(self):
+        self.pwm_pin.duty(512)
+        time.sleep(0.05)
+        self.pwm_pin.duty(0)
+
+    def beeps(self, number):
+        for i in range(number):
+            self.beep()
+            time.sleep(0.05)
+
+
 class Bartendro:
     def __init__(self, uart, buzzer, button, reset_pin, sync_pin):
         self.uart = uart
@@ -124,9 +139,7 @@ class Bartendro:
         if not self.dispense_required:
             self.dispense_required = True
 
-            self.buzzer.duty(512)
-            time.sleep(0.05)
-            self.buzzer.duty(0)
+            self.buzzer.beep()
 
     def run(self):
         if self.dispense_required:
@@ -141,11 +154,7 @@ class Bartendro:
                 # time.sleep(1)
 
             else:
-                for i in range(3):
-                    self.buzzer.duty(512)
-                    time.sleep(0.05)
-                    self.buzzer.duty(0)
-                    time.sleep(0.05)
+                self.buzzer.beeps(3)
 
             self.dispense_required = False
 
@@ -174,9 +183,8 @@ def inc_counter():
     set_counter(dispense_count + 1)
 
 
-buzzer = PWM(Pin(BUZZER_PIN), freq=4000, duty=512)
-time.sleep(0.05)
-buzzer.duty(0)
+buzzer = Buzzer(PWM(Pin(BUZZER_PIN), freq=4000, duty=0))
+buzzer.beep()
 
 uart = UART(1, baudrate=9600, tx=UART_TX_PIN, rx=UART_RX_PIN)
 
