@@ -163,11 +163,6 @@ class Bartendro:
                 uart.write("tickdisp 83 200\r")
 
                 inc_counter()
-
-                # In packet mode we could poll PACKET_IS_DISPENSING but for now
-                # all we can do is sleep or send a PR
-                # time.sleep(1)
-
             else:
                 self.buzzer.beeps(3)
 
