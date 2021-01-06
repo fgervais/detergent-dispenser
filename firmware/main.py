@@ -74,6 +74,17 @@ class Button:
     def pressed(self):
         return not self.pin.value()
 
+    @property
+    def long_pressed(self):
+        time.sleep(0.5)
+
+        for i in range(5):
+            time.sleep(0.1)
+            if not self.pressed:
+                return False
+
+        return True
+
 
 class Buzzer:
     def __init__(self, pwm_pin):
@@ -143,9 +154,13 @@ class Bartendro:
 
     def run(self):
         if self.dispense_required:
-            time.sleep(1)
-            if button.pressed:
-                uart.write("tickdisp 50 200\r")
+            if self.button.long_pressed:
+                # 50 200 => 7.5ml
+                # 0.150ml per tick
+                # 66 200 => 10ml
+                #
+                # 83 200 => 12.45ml ?
+                uart.write("tickdisp 83 200\r")
 
                 inc_counter()
 
