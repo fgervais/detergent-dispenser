@@ -203,7 +203,7 @@ button = Button(
     Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
     callback=button_pressed,
     trigger=Pin.IRQ_FALLING,
-    min_ago=1800
+    min_ago=1800,
 )
 
 dispenser = Bartendro(uart, buzzer, button, RESET_PIN, SYNC_PIN)
