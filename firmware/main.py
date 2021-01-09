@@ -162,7 +162,7 @@ class Bartendro:
         # Add a little delay after the dispense so the button release
         # bounces are not registered as a new dispense request
         elif not self.button.enabled and (
-            ticks_diff(time.ticks_ms(), self.last_dispense_ticks)
+            time.ticks_diff(time.ticks_ms(), self.last_dispense_ticks)
             > self.button_enable_delay_ms
         ):
             self.button.enable()
