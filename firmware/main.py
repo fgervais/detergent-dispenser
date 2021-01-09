@@ -36,39 +36,23 @@ print("network config:", wlan.ifconfig())
 
 
 class Button:
-    """
-    Debounced pin handler
-
-    usage e.g.:
-
-    def button_callback(pin):
-        print("Button (%s) changed to: %r" % (pin, pin.value()))
-
-    button_handler = Button(pin=Pin(32, mode=Pin.IN, pull=Pin.PULL_UP), callback=button_callback)
-
-
-    jedie/button_test.py
-    """
-
-    def __init__(self, pin, callback, trigger=Pin.IRQ_FALLING, min_ago=300):
+    def __init__(self, pin, callback):
         self.pin = pin
         self.callback = callback
-        self.min_ago = min_ago
 
-        self._blocked = False
-        self._next_call = time.ticks_ms() + self.min_ago
+        self.enable()
 
-        pin.irq(trigger=trigger, handler=self.debounce_handler)
-
-    def call_callback(self, pin):
+    def _callback(self, pin):
+        self.disable()
         self.callback(pin)
 
-    def debounce_handler(self, pin):
-        if time.ticks_ms() > self._next_call:
-            self._next_call = time.ticks_ms() + self.min_ago
-            self.call_callback(pin)
-        # else:
-        #    print("debounce: %s" % (self._next_call - time.ticks_ms()))
+    def disable(self):
+        self.pin.irq(trigger=0, handler=None)
+        self._enabled = False
+
+    def enable(self):
+        self.pin.irq(trigger=Pin.IRQ_FALLING, handler=self._callback)
+        self._enabled = True
 
     @property
     def pressed(self):
@@ -84,6 +68,10 @@ class Button:
                 return False
 
         return True
+
+    @property
+    def enabled(self):
+        return self._enabled
 
 
 class Buzzer:
@@ -108,6 +96,8 @@ class Bartendro:
         self.button = button
 
         self.dispense_required = False
+        self.last_dispense_ticks = None
+        self.button_enable_delay_ms = 1000
 
         self.reset = Pin(reset_pin, Pin.OUT, value=1)
         # Ensure that the Bartendro has time to reset (high min. 1ms)
@@ -150,7 +140,6 @@ class Bartendro:
     def dispense(self):
         if not self.dispense_required:
             self.dispense_required = True
-
             self.buzzer.beep()
 
     def run(self):
@@ -164,15 +153,19 @@ class Bartendro:
                 uart.write("tickdisp 83 200\r")
 
                 inc_counter()
+                self.last_dispense_ticks = time.ticks_ms()
             else:
                 self.buzzer.beeps(3)
+                self.button.enable()
 
             self.dispense_required = False
-
-
-def button_pressed(pin):
-    print("Button " + str(pin) + " pressed")
-    dispenser.dispense()
+        # Add a little delay after the dispense so the button release
+        # bounces are not registered as a new dispense request
+        elif not self.button.enabled and (
+            ticks_diff(time.ticks_ms(), self.last_dispense_ticks)
+            > self.button_enable_delay_ms
+        ):
+            self.button.enable()
 
 
 def lock_controls():
@@ -200,18 +193,13 @@ buzzer.beep()
 uart = UART(1, baudrate=9600, tx=UART_TX_PIN, rx=UART_RX_PIN)
 
 button = Button(
-    Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP),
-    callback=button_pressed,
-    trigger=Pin.IRQ_FALLING,
-    min_ago=1800,
+    Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP), callback=lambda pin: dispenser.dispense()
 )
 
 dispenser = Bartendro(uart, buzzer, button, RESET_PIN, SYNC_PIN)
 
 ssl_connection = blynklib_ssl.SslConnection(secret.BLYNK_AUTH, port=443, log=print)
 blynk = blynklib.Blynk(secret.BLYNK_AUTH, connection=ssl_connection)
-
-# blynk = blynklib.Blynk(secret.BLYNK_AUTH)
 
 controls_locked = None
 dispense_count = None
