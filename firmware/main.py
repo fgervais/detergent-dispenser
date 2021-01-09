@@ -149,8 +149,8 @@ class Bartendro:
                 # 0.150ml per tick
                 # 66 200 => 10ml
                 #
-                # 83 200 => 12.45ml ?
-                uart.write("tickdisp 83 200\r")
+                # 83 200 => 12.45ml (seems more like 11ml)
+                uart.write("tickdisp 50 200\r")
 
                 inc_counter()
                 self.last_dispense_ticks = time.ticks_ms()
