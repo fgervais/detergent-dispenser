@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for i in boot.py webrepl_cfg.py main.py blynklib_mp.py blynklib_mp_ssl.py secret.py
+for i in boot.py webrepl_cfg.py main.py secret.py
 do
 	echo -n "$i "
 	ampy --port /dev/ttyUSB3 put $i

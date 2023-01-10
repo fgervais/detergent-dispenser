@@ -4,8 +4,6 @@ import tinypico as TinyPICO
 import micropython
 import esp32
 import machine
-import blynklib_mp as blynklib
-import blynklib_mp_ssl as blynklib_ssl
 import secret
 
 from machine import Pin, PWM, ADC, TouchPad, RTC, UART
@@ -17,12 +15,6 @@ UART_RX_PIN = 32
 UART_TX_PIN = 33
 RESET_PIN = 5
 SYNC_PIN = 18
-
-DISPENSE_BUTTON_VPIN = 0
-COUNTER_VPIN = 4
-RESET_COUNT_VPIN = 2
-LOCK_CONTROLS_VPIN = 3
-DISPENSE_GRAPH_VPIN = 5
 
 
 wlan = network.WLAN(network.STA_IF)
@@ -152,7 +144,6 @@ class Bartendro:
                 # 83 200 => 12.45ml (seems more like 11ml)
                 uart.write("tickdisp 50 200\r")
 
-                inc_counter()
                 self.last_dispense_ticks = time.ticks_ms()
             else:
                 self.buzzer.beeps(3)
@@ -168,25 +159,6 @@ class Bartendro:
             self.button.enable()
 
 
-def lock_controls():
-    global controls_locked
-
-    blynk.virtual_write(LOCK_CONTROLS_VPIN, 1)
-    controls_locked = True
-
-
-def set_counter(count):
-    global dispense_count
-
-    dispense_count = count
-    blynk.virtual_write(COUNTER_VPIN, dispense_count)
-    blynk.virtual_write(DISPENSE_GRAPH_VPIN, dispense_count)
-
-
-def inc_counter():
-    set_counter(dispense_count + 1)
-
-
 buzzer = Buzzer(PWM(Pin(BUZZER_PIN), freq=4000, duty=0))
 buzzer.beep()
 
@@ -198,50 +170,6 @@ button = Button(
 
 dispenser = Bartendro(uart, buzzer, button, RESET_PIN, SYNC_PIN)
 
-ssl_connection = blynklib_ssl.SslConnection(secret.BLYNK_AUTH, port=443, log=print)
-blynk = blynklib.Blynk(secret.BLYNK_AUTH, connection=ssl_connection)
-
-controls_locked = None
-dispense_count = None
-
-
-@blynk.handle_event("write V" + str(LOCK_CONTROLS_VPIN))
-def write_handler(pin, value):
-    global controls_locked
-
-    controls_locked = True if int(value[0]) == 1 else False
-
-    print("Controls [{}]".format("LOCKED" if controls_locked else "UNLOCKED"))
-
-
-@blynk.handle_event("write V" + str(COUNTER_VPIN))
-def write_handler(pin, value):
-    global dispense_count
-
-    if dispense_count is None:
-        dispense_count = int(value[0])
-    else:
-        blynk.virtual_write(COUNTER_VPIN, dispense_count)
-
-
-@blynk.handle_event("write V" + str(DISPENSE_BUTTON_VPIN))
-def write_handler(pin, value):
-    if int(value[0]) == 1 and not controls_locked:
-        dispenser.dispense()
-        lock_controls()
-
-
-@blynk.handle_event("write V" + str(RESET_COUNT_VPIN))
-def write_handler(pin, value):
-    if int(value[0]) == 1 and not controls_locked:
-        set_counter(0)
-        lock_controls()
-
-
-for vpin in [COUNTER_VPIN, LOCK_CONTROLS_VPIN]:
-    blynk.run()
-    blynk.virtual_sync(vpin)
 
 while True:
-    blynk.run()
     dispenser.run()

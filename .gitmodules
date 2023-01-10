@@ -1,3 +1,0 @@
-[submodule "firmware/lib-python"]
-	path = firmware/lib-python
-	url = git@github.com:fgervais/lib-python.git
